@@ -1,0 +1,291 @@
+---
+title: "ASB - Athlete Report"
+author: "Casey Wiens"
+date: "3/29/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# import packages
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(RSQLite)
+library(plotly)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# create connection
+database = '../data/ASB2020_Database.sqlite'
+conn = dbConnect(SQLite(), database)
+# load tables
+data = dbReadTable(conn, "data")
+accdata = dbReadTable(conn, "accdata")
+angledata = dbReadTable(conn, "angledata")
+angveldata = dbReadTable(conn, "angveldata")
+forcedata = dbReadTable(conn, "forcedata")
+cmdata = dbReadTable(conn, "cmkinemdata")
+dbDisconnect(conn)
+# set shape for arm segment
+shapes <- c("Lower Arm" = 22, "Upper Arm" = 25)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# create functions
+# plot angle angle --------------------------------------------------------
+plotangang <- function(ang){
+  
+  ggplot(ang) +
+    geom_point(aes(x = lowerarm, y = upperarm, color = distance)) +
+    facet_wrap(ang$athlete_id) +
+    geom_hline(aes(yintercept = 0)) +
+    xlim(0,180) +
+    ylim(0,180) +
+    coord_fixed() +
+    xlab("Upper Arm Angle (deg)") +
+    ylab("Lower Arm Angle (deg)") +
+    ggtitle("Arm Angle-Angle")
+  
+}
+
+# plot angle vs time ------------------------------------------------------
+plotangletime <- function(ang){
+  
+  ggplot(ang) +
+    geom_point(aes(x = time, y = lowerarm, color = distance, shape = "Lower Arm")) +
+    geom_point(aes(x = time, y = upperarm, color = distance, shape = "Upper Arm")) +
+    facet_wrap(ang$athlete_id) +
+    geom_hline(aes(yintercept = 0)) +
+    xlim(-1,0) +
+    ylim(0,180) +
+    labs(x = "Time (s)",
+         y = "Angle (deg)") +
+    ggtitle("Arm Angle vs Time")
+  
+}
+
+# plot angular velocity vs time -------------------------------------------
+plotangveltime <- function(angv){
+  
+  ggplot(angv) +
+    geom_point(aes(x = time, y = lowerarm_y, color = distance, shape = "Lower Arm")) +
+    geom_point(aes(x = time, y = upperarm_y, color = distance, shape = "Upper Arm")) +
+    scale_shape_manual(values = shapes) +
+    facet_wrap(angv$athlete_id) +
+    geom_hline(aes(yintercept = 0)) +
+    xlim(-1,0) +
+    ylim(-20,20) +
+    labs(x = "Time (s)",
+         y = "Angular Velocity (deg/s)") +
+    ggtitle("Arm Angular Velocity vs Time")
+  
+}
+
+# force vs time -----------------------------------------------------------
+plotforcetime <- function(forced){
+  
+  ggplot(forced) +
+    geom_point(aes(x = time, y = z, color = distance)) +
+    facet_wrap(forced$athlete_id) +
+    geom_hline(aes(yintercept = 0)) +
+    xlim(-1,0) +
+    ylim(0,2500) +
+    xlab("Time (s)") +
+    ylab("Force (N)") +
+    ggtitle("Force Time Curves")
+  
+}
+```
+
+
+## Participants {.tabset}
+
+### All Participants
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# plot angle angle --------------------------------------------------------
+plotangang(angledata)
+
+# plot angle vs time ------------------------------------------------------
+plotangletime(angledata)
+
+# plot angular velocity vs time -------------------------------------------
+plotangveltime(angveldata)
+
+# force vs time -----------------------------------------------------------
+plotforcetime(forcedata)
+```
+
+### 1001
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# filter data for specific participant
+angle_par <- angledata %>% 
+  filter(athlete_id == 1001)
+angvel_par <- angveldata %>% 
+  filter(athlete_id == 1001)
+force_par <- forcedata %>% 
+  filter(athlete_id == 1001)
+
+# plot angle angle --------------------------------------------------------
+plotangang(angle_par)
+
+# plot angle vs time ------------------------------------------------------
+plotangletime(angle_par)
+
+# plot angular velocity vs time -------------------------------------------
+plotangveltime(angvel_par)
+
+# force vs time -----------------------------------------------------------
+plotforcetime(force_par)
+```
+
+
+### 1003
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# filter data for specific participant
+angle_par <- angledata %>% 
+  filter(athlete_id == 1003)
+angvel_par <- angveldata %>% 
+  filter(athlete_id == 1003)
+force_par <- forcedata %>% 
+  filter(athlete_id == 1003)
+
+# plot angle angle --------------------------------------------------------
+plotangang(angle_par)
+
+# plot angle vs time ------------------------------------------------------
+plotangletime(angle_par)
+
+# plot angular velocity vs time -------------------------------------------
+plotangveltime(angvel_par)
+
+# force vs time -----------------------------------------------------------
+plotforcetime(force_par)
+```
+
+
+### 1004
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# filter data for specific participant
+angle_par <- angledata %>% 
+  filter(athlete_id == 1004)
+angvel_par <- angveldata %>% 
+  filter(athlete_id == 1004)
+force_par <- forcedata %>% 
+  filter(athlete_id == 1004)
+
+# plot angle angle --------------------------------------------------------
+plotangang(angle_par)
+
+# plot angle vs time ------------------------------------------------------
+plotangletime(angle_par)
+
+# plot angular velocity vs time -------------------------------------------
+plotangveltime(angvel_par)
+
+# force vs time -----------------------------------------------------------
+plotforcetime(force_par)
+```
+
+
+### 2501
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# filter data for specific participant
+angle_par <- angledata %>% 
+  filter(athlete_id == 2501)
+angvel_par <- angveldata %>% 
+  filter(athlete_id == 2501)
+force_par <- forcedata %>% 
+  filter(athlete_id == 2501)
+
+# plot angle angle --------------------------------------------------------
+plotangang(angle_par)
+
+# plot angle vs time ------------------------------------------------------
+plotangletime(angle_par)
+
+# plot angular velocity vs time -------------------------------------------
+plotangveltime(angvel_par)
+
+# force vs time -----------------------------------------------------------
+plotforcetime(force_par)
+```
+
+
+### 2502
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# filter data for specific participant
+angle_par <- angledata %>% 
+  filter(athlete_id == 2502)
+angvel_par <- angveldata %>% 
+  filter(athlete_id == 2502)
+force_par <- forcedata %>% 
+  filter(athlete_id == 2502)
+
+# plot angle angle --------------------------------------------------------
+plotangang(angle_par)
+
+# plot angle vs time ------------------------------------------------------
+plotangletime(angle_par)
+
+# plot angular velocity vs time -------------------------------------------
+plotangveltime(angvel_par)
+
+# force vs time -----------------------------------------------------------
+plotforcetime(force_par)
+```
+
+
+### 2503
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# filter data for specific participant
+angle_par <- angledata %>% 
+  filter(athlete_id == 2503)
+angvel_par <- angveldata %>% 
+  filter(athlete_id == 2503)
+force_par <- forcedata %>% 
+  filter(athlete_id == 2503)
+
+# plot angle angle --------------------------------------------------------
+plotangang(angle_par)
+
+# plot angle vs time ------------------------------------------------------
+plotangletime(angle_par)
+
+# plot angular velocity vs time -------------------------------------------
+plotangveltime(angvel_par)
+
+# force vs time -----------------------------------------------------------
+plotforcetime(force_par)
+```
+
+
+### 2504
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# filter data for specific participant
+angle_par <- angledata %>% 
+  filter(athlete_id == 2504)
+angvel_par <- angveldata %>% 
+  filter(athlete_id == 2504)
+force_par <- forcedata %>% 
+  filter(athlete_id == 2504)
+
+# plot angle angle --------------------------------------------------------
+plotangang(angle_par)
+
+# plot angle vs time ------------------------------------------------------
+plotangletime(angle_par)
+
+# plot angular velocity vs time -------------------------------------------
+plotangveltime(angvel_par)
+
+# force vs time -----------------------------------------------------------
+plotforcetime(force_par)
+```
