@@ -1,0 +1,164 @@
+---
+title: "ASB2020_exploration"
+output:
+  word_document: default
+  html_notebook: default
+---
+
+```{r setup, include=FALSE}
+# import packages
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(ggsignif)
+library(RSQLite)
+library(plotly)
+source("Rallfun-v36")
+```
+
+
+```{r}
+# create connection
+database = '../data/ASB2020_Database.sqlite'
+conn = dbConnect(SQLite(), database)
+# load tables
+data = dbReadTable(conn, "data") %>% 
+  mutate(distance = factor(distance, levels = c(6, 15, 19.75))) %>%
+  mutate(distancename = if_else(distance == 6, "Short", ifelse(distance == 15, "Mid", "Long"))) %>% 
+  mutate(distancename = factor(distancename, levels = c("Short", "Mid", "Long")))
+accdata = dbReadTable(conn, "accdata")
+angledata = dbReadTable(conn, "angledata")
+angveldata = dbReadTable(conn, "angveldata")
+forcedata = dbReadTable(conn, "forcedata")
+cmdata = dbReadTable(conn, "cmkinemdata")
+dbDisconnect(conn)
+# create athlete variable
+ath = sort(unique(data$athlete_id))
+```
+
+
+```{r}
+# plot release angle vs lower arm extension timing to max center of mass vertical velocity
+p1 <- ggplot(data) +
+  geom_point(aes(setposition_time2cmvvmax_lowerarm, angle_release, color = athlete_id)) +
+  xlim(-.2, .2) +
+  xlab("Time from Max CM Vv to Lower Arm Extension (s)") +
+  ylab("Resultant Velocity Ball Release Angle (deg)") +
+  scale_color_discrete(name = "Participant") +
+  facet_wrap(~data$distancename) +
+  geom_vline(aes(xintercept = 0), alpha = 0.4) +
+  theme(axis.title = element_text(size = 20),
+        axis.text = element_text(size = 18),
+        strip.text = element_text(size = 20),
+        legend.title = element_text(size = 18),
+        legend.text = element_text(size = 20),
+        panel.spacing = unit(1, "lines"))
+```
+
+
+```{r}
+# set shape for arm segment
+colornames <- c("Lower Arm Angular\nVelocity (deg/s)" = "red",
+                "Upper Arm Angular\nVelocity (deg/s)" = "blue",
+                "CM Vertical\nVelocity (m/s)" = "black")
+# filter data
+datap <- merge(angveldata %>% 
+  filter(athlete_id == 1001 | athlete_id == 1003,
+         distance == 19.75),
+  data %>% 
+    select(athlete_id, trial_id, setposition_time2release_lowerarm, setposition_time2cmvvmax_lowerarm))
+cmp <- cmdata %>% 
+  filter(athlete_id == 1001 | athlete_id == 1003,
+         distance == 19.75)
+p2 <- ggplot(data = datap) +
+  geom_point(mapping = aes(x = time, y = lowerarm_y*(180/pi), color = "Lower Arm Angular\nVelocity (deg/s)")) +
+  geom_point(mapping = aes(x = time, y = upperarm_y*(180/pi), color = "Upper Arm Angular\nVelocity (deg/s)")) +
+  geom_point(data = cmp, mapping = aes(x = time, y = vel*300, color = "CM Vertical\nVelocity (m/s)")) +
+  geom_hline(aes(yintercept = 0)) +
+  facet_grid(rows = vars(athlete_id)) +
+  scale_color_manual(values = colornames, name = "Data") +
+  xlim(-0.25,0) +
+  ylim(-1000,1000) +
+  labs(x = "Time (s)",
+       y = "Angular Velocity (deg/s)") +
+  ggtitle("Long") +
+  theme(axis.title = element_text(size = 20),
+        axis.text = element_text(size = 18),
+        strip.text = element_text(size = 20),
+        legend.title = element_text(size = 18),
+        legend.text = element_text(size = 20),
+        panel.spacing = unit(1, "lines"))
+
+# plot plots together
+p3 <- gridExtra::grid.arrange(p1, p2, ncol = 2)
+ggsave("timingexample.png", plot = p3, width = 18)
+```
+
+
+```{r}
+writeLines("Upper Arm Within-individiual: Multiple comparisons using medians on difference scores")
+# initialize variable
+wsResult = matrix(nrow = 7, ncol = 3)
+# step through number of subjects
+for(i in 1:length(unique(data$athlete_id))){
+    # sign test
+    signResult = sintv2mcp(fac2list(data$setposition_time2cmvvmax_upperarm[data$athlete_id == ath[i]],
+                     data$distance[data$athlete_id == ath[i]]))
+    wsResult[i,] = signResult[["output"]][,6]
+}
+# view data
+wsResult
+# adjust p values based on Benjamini-Hochberg's method
+p.adjust(wsResult, method = "BH")
+
+writeLines("Lower Arm Within-individiual: Multiple comparisons using medians on difference scores")
+# initialize variable
+wsResult = matrix(nrow = 7, ncol = 3)
+# step through number of subjects
+for(i in 1:length(unique(data$athlete_id))){
+    # sign test
+    signResult = sintv2mcp(fac2list(data$setposition_time2cmvvmax_lowerarm[data$athlete_id == ath[i]],
+                     data$distance[data$athlete_id == ath[i]]))
+    wsResult[i,] = signResult[["output"]][,6]
+}
+# view data
+wsResult
+# adjust p values based on Benjamini-Hochberg's method
+p.adjust(wsResult, method = "BH")
+
+# trying to plot significance
+sig_df <- data.frame(athlete_id = c("1001", "2504", "1001", "1004", "2502", "2504", "1001", "1003", "1004", "2502", "2503",
+                                    "1001", "1004", "2502", "1001", "1003", "1004", "2501", "2502", "2503", "1003", "1004", "2501", "2502", "2503", "2504"),
+                     variable = c(rep("Upper Arm", 11), rep("Lower Arm", 15)),
+                     start = c(6,6,6,6,6,6,15,15,15,15,15,
+                               6,6,6,6,6,6,6,6,6,15,15,15,15,15,15),
+                     end = c(15,15,19.75,19.75,19.75,19.75,19.75,19.75,19.75,19.75,19.75,
+                             15,15,15,19.75,19.75,19.75,19.75,19.75,19.75,19.75,19.75,19.75,19.75,19.75,19.75),
+                     y = c(rep(-0.15,11), rep(0.15,15)))
+
+# plot changes across distances
+reshape2::melt(data, id.vars = c("athlete_id", "distance","trial_id"),
+               measure.vars = c("setposition_time2cmvvmax_upperarm",
+                                "setposition_time2cmvvmax_lowerarm")) %>% 
+  mutate(variable = if_else(variable == "setposition_time2cmvvmax_upperarm", "Upper Arm", "Lower Arm")) %>% 
+  mutate(variable = factor(variable, levels = c("Upper Arm", "Lower Arm"))) %>% 
+  ggplot() +
+  geom_boxplot(aes(athlete_id, value, color = distance)) +
+  ylim(-.2, .2) +
+  geom_hline(aes(yintercept = 0), alpha = 0.2) +
+  xlab("Participant") +
+  ylab("Time from Max CM Vv to Segment Shot Initiation (s)") +
+  scale_color_discrete(labels = c("Short", "Mid", "Long"), name = "Distance") +
+  facet_wrap(~variable) +
+  coord_flip() +
+  theme(axis.title = element_text(size = 18),
+        axis.text = element_text(size = 16),
+        strip.text = element_text(size = 18),
+        legend.title = element_text(size = 18),
+        legend.text = element_text(size = 16),
+        panel.spacing = unit(1, "lines"))
+```
+
+
+
+
