@@ -26,10 +26,7 @@ data = dbReadTable(conn, "data") %>%
   mutate(distance = factor(distance, levels = c(6, 15, 19.75))) %>%
   mutate(distancename = if_else(distance == 6, "Short", ifelse(distance == 15, "Mid", "Long"))) %>% 
   mutate(distancename = factor(distancename, levels = c("Short", "Mid", "Long")))
-accdata = dbReadTable(conn, "accdata")
-angledata = dbReadTable(conn, "angledata")
 angveldata = dbReadTable(conn, "angveldata")
-forcedata = dbReadTable(conn, "forcedata")
 cmdata = dbReadTable(conn, "cmkinemdata")
 dbDisconnect(conn)
 # create athlete variable
