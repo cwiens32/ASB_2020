@@ -10,37 +10,35 @@ library(plotly)
 # database ----------------------------------------------------------------
 
 # connect to database
-dbOG <- 'C:\\Users\\cwiens\\Box Sync\\USC - Biomechanics Lab\\Conferences\\ASB2020\\ASB2020_Database.sqlite'
+dbOG <- "C:/Users/cwiens/Box Sync/USC - Biomechanics Lab/Conferences/ASB2020/ASB2020_Database.sqlite"
 connOG <- dbConnect(SQLite(), dbOG)
-db <- 'C:\\Users\\cwiens\\Documents\\R\\Conferences\\2020 ASB\\ASB2020_Database.sqlite'
+db <- "C:/Users/cwiens/Conferences/ASB_2020/Data/ASB2020_Database.sqlite"
 conn <- dbConnect(SQLite(), db)
 
 
 # create data table -------------------------------------------------------
 
 # load tables
-ls = dbReadTable(connOG, 'logsheet') %>%
-  select('collection_id', 'trial_id', 'athlete_id', 'shot_type', 'distance', 'result')
+# ls <- dbReadTable(connOG, 'logsheet') %>%
+#   select('collection_id', 'trial_id', 'athlete_id', 'shot_type', 'distance', 'result')
+ls <- dbReadTable(connOG, "logsheet") %>%
+  select("trial_id", "athlete_id", "distance")
 # load sensor data
-sensor.data = dbReadTable(connOG, 'sensor_results') %>% 
-  select(-"angle_shotinit_trunk", -"angle_release_trunk") %>% 
+sensor.data <- dbReadTable(connOG, 'sensor_results') %>% 
+  select("trial_id", "setposition_time2release_upperarm", "setposition_time2release_lowerarm",
+         "setposition_time2cmvvmax_upperarm", "setposition_time2cmvvmax_lowerarm") %>% 
   mutate(trial_id = as.double(trial_id))
 # load ball data
-ball.var = dbReadTable(connOG, 'ballvar') %>%
+ball.var <- dbReadTable(connOG, 'ballvar') %>%
+  select("Trial_ID", "angle_release", "ball_velocity_release_x", "ball_velocity_release_y") %>% 
   mutate(Trial_ID = as.double(Trial_ID))
 names(ball.var) <- tolower(names(ball.var))
-# load force data
-shotimp = dbReadTable(connOG, 'shotimp') %>% 
-  select('Trial_ID', 'velD_Y_release', 'velD_Z_release') %>% 
-  mutate(Trial_ID = as.double(Trial_ID))
-names(shotimp) <- tolower(names(shotimp))
 # combine tables
-sensortab = merge(sensor.data, ls, by='trial_id') %>% 
+sensortab <- merge(sensor.data, ls, by='trial_id') %>% 
   mutate(athlete_id = factor(athlete_id),
          distance = factor(distance, levels = c(6,15,19.75)))
-balltab = merge(ball.var, ls)
-data = merge(sensortab,balltab)
-data = merge(data, shotimp)
+balltab <- merge(ball.var, ls)
+data <- merge(sensortab,balltab)
 # write table to new database
 dbWriteTable(conn, "data", data, overwrite = TRUE)
 
@@ -55,70 +53,6 @@ taball <- merge(merge(dbGetQuery(connOG, 'SELECT * FROM table_info'),
          shotinit_sensorarm = shotinit_sensorarm * (1/120))
 # write table to new database
 dbWriteTable(conn, "table_info", taball)
-
-
-# load acceleration data tables into master table -------------------------
-
-# load acceleration tables
-for (cnt in 1:dim(taball)[1]){
-  if (!is.na(taball$acc[cnt])){
-    if (exists("accall")){
-      accall <- rbind(accall,
-                        dbGetQuery(connOG, sprintf('SELECT * FROM %s', taball$acc[cnt])) %>% 
-                          filter(time >= taball$shotinit_sensorarm[cnt] & time <= taball$release_sensor[cnt]) %>%
-                          mutate(athlete_id = taball$athlete_id[cnt],
-                                 trial_id = taball$trial_id[cnt],
-                                 time = time - taball$release_sensor[cnt],
-                                 shotinit = taball$shotinit_sensorarm[cnt] - taball$release_sensor[cnt],
-                                 distance = factor(taball$distance[cnt]),
-                                 result = taball$result[cnt]))
-    }else{
-      # load first table
-      accall <- dbGetQuery(connOG, sprintf('SELECT * FROM %s', taball$acc[cnt])) %>% 
-        filter(time >= taball$shotinit_sensorarm[cnt] & time <= taball$release_sensor[cnt]) %>% 
-        mutate(athlete_id = taball$athlete_id[cnt],
-               trial_id = taball$trial_id[cnt],
-               time = time - taball$release_sensor[cnt],
-               shotinit = taball$shotinit_sensorarm[cnt] - taball$release_sensor[cnt],
-               distance = factor(taball$distance[cnt]),
-               result = taball$result[cnt])
-    }
-  }
-}
-# write table to new database
-dbWriteTable(conn, "accdata", accall)
-
-
-# load angle data tables into master table --------------------------------
-
-# load angle tables
-for (cnt in 1:dim(taball)[1]){
-  if (!is.na(taball$angle[cnt])){
-    if (exists("angleall")){
-      angleall <- rbind(angleall,
-                        dbGetQuery(connOG, sprintf('SELECT * FROM %s', taball$angle[cnt])) %>% 
-                          filter(time >= taball$shotinit_sensorarm[cnt] & time <= taball$release_sensor[cnt]) %>%
-                          mutate(athlete_id = taball$athlete_id[cnt],
-                                 trial_id = taball$trial_id[cnt],
-                                 time = time - taball$release_sensor[cnt],
-                                 shotinit = taball$shotinit_sensorarm[cnt] - taball$release_sensor[cnt],
-                                 distance = factor(taball$distance[cnt]),
-                                 result = taball$result[cnt]))
-    }else{
-      # load first table
-      angleall <- dbGetQuery(connOG, sprintf('SELECT * FROM %s', taball$angle[cnt])) %>% 
-        filter(time >= taball$shotinit_sensorarm[cnt] & time <= taball$release_sensor[cnt]) %>% 
-        mutate(athlete_id = taball$athlete_id[cnt],
-               trial_id = taball$trial_id[cnt],
-               time = time - taball$release_sensor[cnt],
-               shotinit = taball$shotinit_sensorarm[cnt] - taball$release_sensor[cnt],
-               distance = factor(taball$distance[cnt]),
-               result = taball$result[cnt])
-    }
-  }
-}
-# write table to new database
-dbWriteTable(conn, "angledata", angleall)
 
 
 # load angular velocity data tables into master table ---------------------
@@ -150,41 +84,7 @@ for (cnt in 1:dim(taball)[1]){
   }
 }
 # write table to new database
-dbWriteTable(conn, "angveldata", angvelall)
-
-
-# load force data tables into master table --------------------------------
-
-# load force tables
-for (cnt in 1:dim(taball)[1]){
-  if (!is.na(taball$force[cnt])){
-    if (exists("forceall")){
-      forceall <- rbind(forceall,
-                        dbGetQuery(connOG, sprintf('SELECT * FROM %s', taball$force[cnt])) %>% 
-                          filter(Time >= taball$shotinit_sensorarm[cnt] & Time <= taball$release_sensor[cnt]) %>%
-                          mutate(athlete_id = taball$athlete_id[cnt],
-                                 trial_id = taball$trial_id[cnt],
-                                 Time = Time - taball$release_sensor[cnt],
-                                 shotinit = taball$shotinit_sensorarm[cnt] - taball$release_sensor[cnt],
-                                 distance = factor(taball$distance[cnt]),
-                                 result = taball$result[cnt]))
-    }else{
-      # load first table
-      forceall <- dbGetQuery(connOG, sprintf('SELECT * FROM %s', taball$force[cnt])) %>% 
-        filter(Time >= taball$shotinit_sensorarm[cnt] & Time <= taball$release_sensor[cnt]) %>% 
-        mutate(athlete_id = taball$athlete_id[cnt],
-               trial_id = taball$trial_id[cnt],
-               Time = Time - taball$release_sensor[cnt],
-               shotinit = taball$shotinit_sensorarm[cnt] - taball$release_sensor[cnt],
-               distance = factor(taball$distance[cnt]),
-               result = taball$result[cnt])
-    }
-  }
-}
-# change variables to lowercase
-names(forceall) <- tolower(names(forceall))
-# write table to new database
-dbWriteTable(conn, "forcedata", forceall, overwrite = TRUE)
+dbWriteTable(conn, "angveldata", angvelall, overwrite=TRUE)
 
 
 # load cm kinematic data tables into master table ---------------------------
