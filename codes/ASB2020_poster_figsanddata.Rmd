@@ -1,0 +1,227 @@
+---
+title: "2020 ASB Poster Data and Figures"
+author: "Casey Wiens"
+date: "7/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# import packages
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(ggsignif)
+library(RSQLite)
+library(plotly)
+library(gganimate)
+library(kableExtra)
+source("Rallfun-v36")
+```
+
+
+```{r}
+# create connection
+database <- '../data/ASB2020_Database.sqlite'
+conn <- dbConnect(SQLite(), database)
+# load tables
+data <- dbReadTable(conn, "data") %>% 
+  mutate(distance = factor(distance, levels = c(6, 15, 19.75))) %>%
+  mutate(distancename = if_else(distance == 6, "Short", ifelse(distance == 15, "Mid", "Long"))) %>% 
+  mutate(distancename = factor(distancename, levels = c("Long", "Mid", "Short")))
+cmdata <- dbReadTable(conn, "cmkinemdata")
+dbDisconnect(conn)
+# create athlete variable
+ath <- sort(unique(data$athlete_id))
+```
+
+
+Create time to apex variable
+```{r}
+# find release frame for each trial and the calculate time to apex from release
+release_time <- cmdata %>% 
+  group_by(trial_id) %>% 
+  slice(which.max(time)) %>% 
+  mutate(time2apex = -vel / -9.81) %>% 
+  select("trial_id", "time2apex")
+# merge with rest of data
+data <- merge(data, release_time) %>% 
+  mutate(time2apex_shotinit_lowerarm = setposition_time2release_lowerarm - time2apex,
+         time2apex_shotinit_upperarm = setposition_time2release_upperarm - time2apex,
+         time2apex_shotinit = min(setposition_time2release_upperarm,setposition_time2release_lowerarm) - time2apex)
+```
+
+
+```{r}
+# plot release angle vs lower arm extension timing to max center of mass vertical velocity
+ggplot(data) +
+  geom_point(aes(time2apex_shotinit_lowerarm, angle_release, color = athlete_id)) +
+  xlab("Time from Lower Arm Extension to CM Trajectory Apex (s)") +
+  ylab("Resultant Velocity Ball Release Angle (deg)") +
+  scale_color_discrete(name = "Participant") +
+  facet_wrap(~data$distancename) +
+  geom_vline(aes(xintercept = 0), alpha = 0.4)
+
+ggplot(data) +
+  geom_point(aes(time2apex_shotinit_lowerarm, angle_release, color = athlete_id)) +
+  xlab("Time from Lower Arm Extension to CM Trajectory Apex (s)") +
+  ylab("Resultant Velocity Ball Release Angle (deg)") +
+  scale_color_discrete(name = "Participant") +
+  geom_vline(aes(xintercept = 0), alpha = 0.4)
+```
+
+
+```{r}
+# plot release angle vs lower arm extension timing to max center of mass vertical velocity
+ggplot(data) +
+  geom_point(aes(time2apex_shotinit_upperarm, angle_release, color = athlete_id)) +
+  xlab("Time from Upper Arm Extension to CM Trajectory Apex (s)") +
+  ylab("Resultant Velocity Ball Release Angle (deg)") +
+  scale_color_discrete(name = "Participant") +
+  facet_wrap(~data$distancename) +
+  geom_vline(aes(xintercept = 0), alpha = 0.4)
+
+ggplot(data) +
+  geom_point(aes(time2apex_shotinit_upperarm, angle_release, color = athlete_id)) +
+  xlab("Time from Upper Arm Extension to CM Trajectory Apex (s)") +
+  ylab("Resultant Velocity Ball Release Angle (deg)") +
+  scale_color_discrete(name = "Participant") +
+  geom_vline(aes(xintercept = 0), alpha = 0.4)
+```
+
+
+
+```{r}
+# plot release angle vs lower arm extension timing to max center of mass vertical velocity
+ggplot(data) +
+  geom_point(aes(time2apex_shotinit, angle_release, color = athlete_id)) +
+  xlab("Time from Arm Extension to CM Trajectory Apex (s)") +
+  ylab("Resultant Velocity Ball Release Angle (deg)") +
+  scale_color_discrete(name = "Participant") +
+  facet_wrap(~data$distancename) +
+  geom_vline(aes(xintercept = 0), alpha = 0.4)
+
+ggplot(data) +
+  geom_point(aes(time2apex_shotinit, angle_release, color = athlete_id)) +
+  xlab("Time from Arm Extension to CM Trajectory Apex (s)") +
+  ylab("Resultant Velocity Ball Release Angle (deg)") +
+  scale_color_discrete(name = "Participant") +
+  geom_vline(aes(xintercept = 0), alpha = 0.4)
+```
+
+
+```{r}
+# plot release angle vs lower arm extension timing to max center of mass vertical velocity
+ggplot(data) +
+  geom_point(aes(time2apex_shotinit_lowerarm, ball_velocity_release_y, color = athlete_id)) +
+  xlab("Time from Lower Arm Extension to CM Trajectory Apex (s)") +
+  ylab("Ball Vertical Velocity at Release (m/s)") +
+  scale_color_discrete(name = "Participant") +
+  facet_wrap(~data$distancename) +
+  geom_vline(aes(xintercept = 0), alpha = 0.4)
+
+ggplot(data) +
+  geom_point(aes(time2apex_shotinit_lowerarm, ball_velocity_release_y, color = athlete_id)) +
+  xlab("Time from Lower Arm Extension to CM Trajectory Apex (s)") +
+  ylab("Ball Vertical Velocity at Release (m/s)") +
+  scale_color_discrete(name = "Participant") +
+  geom_vline(aes(xintercept = 0), alpha = 0.4)
+```
+
+
+```{r}
+# plot release angle vs lower arm extension timing to max center of mass vertical velocity
+ggplot(data) +
+  geom_point(aes(time2apex_shotinit_upperarm, ball_velocity_release_y, color = athlete_id)) +
+  xlab("Time from Upper Arm Extension to CM Trajectory Apex (s)") +
+  ylab("Ball Vertical Velocity at Release (m/s)") +
+  scale_color_discrete(name = "Participant") +
+  facet_wrap(~data$distancename) +
+  geom_vline(aes(xintercept = 0), alpha = 0.4)
+
+ggplot(data) +
+  geom_point(aes(time2apex_shotinit_upperarm, ball_velocity_release_y, color = athlete_id)) +
+  xlab("Time from Upper Arm Extension to CM Trajectory Apex (s)") +
+  ylab("Ball Vertical Velocity at Release (m/s)") +
+  scale_color_discrete(name = "Participant") +
+  geom_vline(aes(xintercept = 0), alpha = 0.4)
+```
+
+
+```{r}
+# plot release angle vs lower arm extension timing to max center of mass vertical velocity
+ggplot(data) +
+  geom_point(aes(time2apex_shotinit, ball_velocity_release_y, color = athlete_id)) +
+  xlab("Time from Arm Extension to CM Trajectory Apex (s)") +
+  ylab("Ball Vertical Velocity at Release (m/s)") +
+  scale_color_discrete(name = "Participant") +
+  facet_wrap(~data$distancename) +
+  geom_vline(aes(xintercept = 0), alpha = 0.4)
+
+ggplot(data) +
+  geom_point(aes(time2apex_shotinit, ball_velocity_release_y, color = athlete_id, shape = distancename)) +
+  labs(x = "Time from Arm Extension to CM Trajectory Apex (s)",
+       y = "Ball Vertical Velocity at Release (m/s)",
+       color = "Participant",
+       shape = "Distance",
+       title = "Distance ") +
+  geom_vline(aes(xintercept = 0), alpha = 0.4) +
+  transition_states(distancename,
+                    transition_length = 2,
+                    state_length = 1) +
+  shadow_mark()
+ggsave("../figures/arminitiationvscmtrajapex.png")
+```
+
+```{r}
+writeLines("Shot Init Relative to Apex - Within-individiual: Multiple comparisons using medians on difference scores")
+# initialize variable
+wsResult = matrix(nrow = 7, ncol = 3)
+
+# step through number of subjects
+for(i in 1:length(unique(data$athlete_id))){# sign test
+  signResult = sintv2mcp(fac2list(data$time2apex_shotinit[data$athlete_id == ath[i]],
+                   data$distance[data$athlete_id == ath[i]]))
+  wsResult[i,] = signResult[["output"]][,6]
+}
+# view data
+wsResult
+# adjust p values based on Benjamini-Hochberg's method
+p.adjust(wsResult, method = "BH")
+
+writeLines("Vertical Ball Velocity at Release - Within-individiual: Multiple comparisons using medians on difference scores")
+# initialize variable
+wsResult = matrix(nrow = 7, ncol = 3)
+# step through number of subjects
+for(i in 1:length(unique(data$athlete_id))){
+    # sign test
+    signResult = sintv2mcp(fac2list(data$ball_velocity_release_y[data$athlete_id == ath[i]],
+                     data$distance[data$athlete_id == ath[i]]))
+    wsResult[i,] = signResult[["output"]][,6]
+}
+# view data
+wsResult
+# adjust p values based on Benjamini-Hochberg's method
+p.adjust(wsResult, method = "BH")
+```
+
+```{r}
+resultstbl_s <- setNames(data.frame(matrix(ncol = 4, nrow = length(unique(data$athlete_id)))), c("Participant", "Long", "Mid", "Close"))
+resultstbl_v <- setNames(data.frame(matrix(ncol = 3, nrow = length(unique(data$athlete_id)))), c("Long", "Mid", "Close"))
+
+# step through number of subjects
+for(i in 1:length(unique(data$athlete_id))){
+  resultstbl_s$Participant[i] <- ath[i]
+  resultstbl_s$Long[i] <- median(data$time2apex_shotinit[data$athlete_id == ath[i] & data$distance==19.75])
+  resultstbl_s$Mid[i] <- median(data$time2apex_shotinit[data$athlete_id == ath[i] & data$distance==15])
+  resultstbl_s$Close[i] <- median(data$time2apex_shotinit[data$athlete_id == ath[i] & data$distance==6])
+  resultstbl_v$Long[i] <- median(data$ball_velocity_release_y[data$athlete_id == ath[i] & data$distance==19.75])
+  resultstbl_v$Mid[i] <- median(data$ball_velocity_release_y[data$athlete_id == ath[i] & data$distance==15])
+  resultstbl_v$Close[i] <- median(data$ball_velocity_release_y[data$athlete_id == ath[i] & data$distance==6])
+}
+
+kable(cbind(resultstbl_s, resultstbl_v), digits = 3) %>%
+  add_header_above(c(" " = 1, "Shot Initiation to Apex (s)" = 3, "Ball Vv at Release (m/s)" = 3)) %>%
+  column_spec (c(4), border_right = T) %>%
+  kable_styling(full_width = FALSE)
+```
+
