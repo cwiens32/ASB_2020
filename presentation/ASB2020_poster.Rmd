@@ -1,31 +1,23 @@
 ---
-main_topsize: 0 #percent coverage of the poster
-main_bottomsize: 0.1
-#ESSENTIALS
-title: '**Coordination of Upper Extremity and Center of Mass Trajectory During Basketball Shots from Varying Distances**'
+title: "Coordination of Upper Extremity and Center of Mass Trajectory During Basketball Shots from Varying Distances"
 author:
-  - name: '**Casey Wiens**'
+  - name: Casey Wiens
     affil: 1
-    main: true
-    twitter: casey_wiens 
-    email: cwiens@usc.edu
   - name: Jill L. McNitt-Gray
-    affil: 1,2
-    main: true
+    affil: [1,2]
 affiliation:
   - num: 1
     address: Department of Biological Sciences, University of Southern California
   - num: 2
     address: Department of Biomedical Engineering, University of Southern California
-logoleft_name: https&#58;//raw.githubusercontent.com/brentthorne/posterdown/master/images/betterhexlogo.png
-logoright_name: https&#58;//raw.githubusercontent.com/brentthorne/posterdown/master/images/betterhexlogo.png
 column_numbers: 2
-body_textsize: 400%
+poster_height: 48in
+logoright_name: ../images/usc_seal.jpg
+logoleft_name: ../images/ASBNewWebBanner4.png
+titlebox_bgcol: #971C02
 output: 
-  posterdown::posterdown_betterport:
-    self_contained: false
-    pandoc_args: --mathjax
-    number_sections: false
+  posterdown::posterdown_html:
+    self_contained: true
 bibliography: reflist.bib
 link-citations: true
 ---
@@ -36,17 +28,15 @@ knitr::opts_chunk$set(echo = FALSE,
                       tidy = FALSE,
                       message = FALSE,
                       fig.align = 'center',
-                      out.width = "100%")
+                      out.width = "90%")
 options(knitr.table.format = "html") 
 # import packages
 library(data.table)
 library(dplyr)
 library(ggplot2)
-library(ggsignif)
 library(RSQLite)
-library(plotly)
 library(gganimate)
-source("../codes/Rallfun-v36")
+library(kableExtra)
 ```
 
 ```{r}
@@ -81,8 +71,8 @@ data <- merge(data, release_time) %>%
 
 - Known
   - Basketball shots are taken from varying distance from hoop
-  - Distance affects max angular velocity [@Nakano2018] and timing of max upper extremity joint angular velocities [@Podmenik2017, @Miller1993] relative to ball release
-  - Releasing the ball earlier relative to center of mass (CM) trajectory apex increases the CM vertical velocity contribution to ball vertical velocity [@Wiens]
+  - Distance affects max angular velocity [@Nakano2018] and timing of max upper extremity joint angular velocities [@Podmenik2017], [@Miller1993] relative to ball release
+  - Releasing the ball earlier relative to center of mass (CM) trajectory apex increases the CM vertical velocity contribution to ball vertical velocity [@Wiens2020]
 - Unknown
   - How individuals control their upper extremity in relation to CM trajectory during shooting motion
 
@@ -110,7 +100,31 @@ data <- merge(data, release_time) %>%
   - Multiple comparisons on difference scores
   - p-values adjusted using Benjamini-Hochberg method [@Wilcox2017]
 
-![](../images/bballoverlay_withlines.png)
+## Data
+
+```{r}
+resultstbl_s <- setNames(data.frame(matrix(ncol = 4, nrow = length(unique(data$athlete_id)))), c("Participant", "Long", "Mid", "Close"))
+resultstbl_v <- setNames(data.frame(matrix(ncol = 3, nrow = length(unique(data$athlete_id)))), c("Long", "Mid", "Close"))
+
+# step through number of subjects
+for(i in 1:length(unique(data$athlete_id))){
+  resultstbl_s$Participant[i] <- ath[i]
+  resultstbl_s$Long[i] <- median(data$time2apex_shotinit[data$athlete_id == ath[i] & data$distance==19.75])
+  resultstbl_s$Mid[i] <- median(data$time2apex_shotinit[data$athlete_id == ath[i] & data$distance==15])
+  resultstbl_s$Close[i] <- median(data$time2apex_shotinit[data$athlete_id == ath[i] & data$distance==6])
+  resultstbl_v$Long[i] <- median(data$ball_velocity_release_y[data$athlete_id == ath[i] & data$distance==19.75])
+  resultstbl_v$Mid[i] <- median(data$ball_velocity_release_y[data$athlete_id == ath[i] & data$distance==15])
+  resultstbl_v$Close[i] <- median(data$ball_velocity_release_y[data$athlete_id == ath[i] & data$distance==6])
+}
+
+kable(cbind(resultstbl_s, resultstbl_v), digits = 3, caption = "Within-participant Comparisons Across Distances") %>%
+  add_header_above(c(" " = 1, "Shot Initiation to Apex (s)" = 3, "Ball Vv at Release (m/s)" = 3)) %>%
+  column_spec (c(4), border_right = T) %>%
+  kable_styling(full_width = TRUE) %>% 
+  footnote(general = "All comparisons p < 0.001")
+```
+
+![](../images/bballoverlay_withlines.png){ width=80% }
 
 # Results
 
@@ -123,7 +137,7 @@ ggplot(data) +
        shape = "Distance") +
   geom_vline(aes(xintercept = 0), alpha = 0.4) +
   transition_states(distancename,
-                    transition_length = 2,
+                    transition_length = 1,
                     state_length = 1) +
   shadow_mark()
 ```
