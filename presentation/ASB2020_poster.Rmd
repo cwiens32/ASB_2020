@@ -4,14 +4,14 @@ author:
   - name: Casey Wiens
     affil: 1
   - name: Jill L. McNitt-Gray
-    affil: [1,2]
+    affil: 1,2
 affiliation:
   - num: 1
     address: Department of Biological Sciences, University of Southern California
   - num: 2
     address: Department of Biomedical Engineering, University of Southern California
 column_numbers: 2
-poster_height: 48in
+poster_height: 52in
 logoright_name: ../images/usc_seal.jpg
 logoleft_name: ../images/ASBNewWebBanner4.png
 titlebox_bgcol: #971C02
@@ -69,16 +69,14 @@ data <- merge(data, release_time) %>%
 
 # Introduction
 
-- Known
-  - Basketball shots are taken from varying distance from hoop
-  - Distance affects max angular velocity [@Nakano2018] and timing of max upper extremity joint angular velocities [@Podmenik2017], [@Miller1993] relative to ball release
-  - Releasing the ball earlier relative to center of mass (CM) trajectory apex increases the CM vertical velocity contribution to ball vertical velocity [@Wiens2020]
-- Unknown
-  - How individuals control their upper extremity in relation to CM trajectory during shooting motion
+- In the course of play, basketball shots are taken from varying distances from hoop.
+- A change in shot distance affects the max angular velocity [@Nakano2018] and timing of max upper extremity joint angular velocities [@Podmenik2017; @Miller1993] relative to ball release.
+- By releasing the ball earlier relative to center of mass (CM) trajectory apex, the CM vertical velocity's contribution to the ball vertical velocity is increased [@Wiens2020]. The timing between ball release and CM trajectory apex increases with increase in shot distance [@Wiens2020].
+- Do individuals control the timing of the upper extremity shot initiation relative to the CM trajectory at varying distances?
 
 ## Hypothesis
 
-- Upper extremity shot initiation would occur earlier relative to CM trajectory apex
+- Upper extremity shot initiation would occur earlier relative to CM trajectory apex with increase in shot distance
 
 # Methods
 
@@ -100,7 +98,7 @@ data <- merge(data, release_time) %>%
   - Multiple comparisons on difference scores
   - p-values adjusted using Benjamini-Hochberg method [@Wilcox2017]
 
-## Data
+# Results
 
 ```{r}
 resultstbl_s <- setNames(data.frame(matrix(ncol = 4, nrow = length(unique(data$athlete_id)))), c("Participant", "Long", "Mid", "Close"))
@@ -124,9 +122,11 @@ kable(cbind(resultstbl_s, resultstbl_v), digits = 3, caption = "Within-participa
   footnote(general = "All comparisons p < 0.001")
 ```
 
-![](../images/bballoverlay_withlines.png){ width=80% }
+- With an increase in shot distance:
+  - The time between upper extremity shot initiation and CM trajectory apex increased
+  - The ball vertical velocity at released increased
 
-# Results
+![](../images/bballoverlay_withlines.png){ width=80% }
 
 ```{r animateplot}
 ggplot(data) +
@@ -145,7 +145,10 @@ ggplot(data) +
 
 # Discussion
 
-- Changes in timing of upper extremity shot initiation in relation to CM trajectory apex were associated with differences in ball vertical velocity at release
+- Shot distance affects the magnitude and timing of upper extremity joint max angular velocities [@Nakano2018; @Podmenik2017; @Miller1993] relative to ball release
+- Releasing the ball earlier relative to CM trajectory apex uses more of the CM vertical velocity and relies less on the arms [@Wiens2020]
+- Upper extremity shot initiation occurs earlier relative to the CM trajectory apex when shot distance increases
+- Changes in the timing of upper extremity shot initiation in relation to the CM trajectory apex were associated with differences in ball vertical velocity at release
 - Timing of upper body shooting motion relative to whole body motion may affect ball release angle, subsequently affecting performance outcomes
 
 # References
