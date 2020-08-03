@@ -111,7 +111,8 @@ data <- merge(data, release_time) %>%
 
 # Results
 
-Upper extremity shot initiation occurred significantly earlier relative to CM trajectory apex with increase in shot distance for all 7 participants.
+- Upper extremity shot initiation occurred significantly earlier relative to CM trajectory apex with increase in shot distance for all 7 participants.
+- Ball vertical velocity at release significantly increased with an increase in shot distance
 
 ![](../images/bballoverlay_withlines.png){ width=80% }
 
