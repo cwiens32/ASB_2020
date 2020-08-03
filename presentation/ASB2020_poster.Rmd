@@ -85,8 +85,8 @@ data <- merge(data, release_time) %>%
 - Experimental Task
   - Received chest pass from person under hoop
   - Minimum 10 attempts at three distances
-    - Long: high school three-point line (6.02m)
-    - Medium: free throw (4.57m)
+    - Long: 6.02 m (high school three-point line)
+    - Medium: 4.57 m (free throw)
     - Short: < 2.5m
 
 # Data Collection
