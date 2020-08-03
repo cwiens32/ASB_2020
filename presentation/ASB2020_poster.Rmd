@@ -78,21 +78,32 @@ data <- merge(data, release_time) %>%
 
 - Upper extremity shot initiation would occur earlier relative to CM trajectory apex with increase in shot distance
 
-# Methods
+# Experimental Design
 
 - Participants
-  - 7 recreational players (4 female; college-aged)
-- Basketball shot at game pace
-  - Minimum 10 attempts at each distance
-- Motion capture
-  - Ball motion (Panasonic, 120Hz)
-- Force-Time Characteristics
-  - Net impulse = change in momentum (Kistler, 1200Hz)
-- Wearable sensors
-  - Arm segment motion (APDM, 120Hz)
+  - 7 recreational players (4 female; college-aged; >10 years experience)
+- Experimental Task
+  - Received chest pass from person under hoop
+  - Minimum 10 attempts at three distances
+    - Long: high school three-point line (6.02m)
+    - Medium: free throw (4.57m)
+    - Short: < 2.5m
 
-# Stats
-- Upper extremity shot initiation: earliest event of following:
+# Data Collection
+- Motion capture
+  - Video of ball motion (Panasonic, 120Hz)
+  - Wearable inertial measurement units of upper extremity (APDM, 120Hz)
+- Force measurements
+  - Two portable force plates (Kistler, 1200Hz)
+
+# Data Analysis
+- Center of mass velocity
+  - Net impulse = change in momentum (using force measurements)
+- Ball release velocity
+  - Projectile motion equations
+- Time of apex of center of mass trajectory
+  - Projectile motion equations
+- Time of upper extremity shot initiation: earliest event of following:
   - Earliest event between: shoulder flexion or elbow extension
 - Within-participant differences between shot distances
   - Multiple comparisons on difference scores
@@ -100,31 +111,7 @@ data <- merge(data, release_time) %>%
 
 # Results
 
-```{r}
-resultstbl_s <- setNames(data.frame(matrix(ncol = 4, nrow = length(unique(data$athlete_id)))), c("Participant", "Long", "Mid", "Close"))
-resultstbl_v <- setNames(data.frame(matrix(ncol = 3, nrow = length(unique(data$athlete_id)))), c("Long", "Mid", "Close"))
-
-# step through number of subjects
-for(i in 1:length(unique(data$athlete_id))){
-  resultstbl_s$Participant[i] <- ath[i]
-  resultstbl_s$Long[i] <- median(data$time2apex_shotinit[data$athlete_id == ath[i] & data$distance==19.75])
-  resultstbl_s$Mid[i] <- median(data$time2apex_shotinit[data$athlete_id == ath[i] & data$distance==15])
-  resultstbl_s$Close[i] <- median(data$time2apex_shotinit[data$athlete_id == ath[i] & data$distance==6])
-  resultstbl_v$Long[i] <- median(data$ball_velocity_release_y[data$athlete_id == ath[i] & data$distance==19.75])
-  resultstbl_v$Mid[i] <- median(data$ball_velocity_release_y[data$athlete_id == ath[i] & data$distance==15])
-  resultstbl_v$Close[i] <- median(data$ball_velocity_release_y[data$athlete_id == ath[i] & data$distance==6])
-}
-
-kable(cbind(resultstbl_s, resultstbl_v), digits = 3, caption = "Within-participant Comparisons Across Distances") %>%
-  add_header_above(c(" " = 1, "Shot Initiation to Apex (s)" = 3, "Ball Vv at Release (m/s)" = 3)) %>%
-  column_spec (c(4), border_right = T) %>%
-  kable_styling(full_width = TRUE) %>% 
-  footnote(general = "All comparisons p < 0.001")
-```
-
-- With an increase in shot distance:
-  - The time between upper extremity shot initiation and CM trajectory apex increased
-  - The ball vertical velocity at released increased
+Upper extremity shot initiation occurred significantly earlier relative to CM trajectory apex with increase in shot distance for all 7 participants.
 
 ![](../images/bballoverlay_withlines.png){ width=80% }
 
@@ -145,9 +132,9 @@ ggplot(data) +
 
 # Discussion
 
-- Shot distance affects the magnitude and timing of upper extremity joint max angular velocities [@Nakano2018; @Podmenik2017; @Miller1993] relative to ball release
-- Releasing the ball earlier relative to CM trajectory apex uses more of the CM vertical velocity and relies less on the arms [@Wiens2020]
-- Upper extremity shot initiation occurs earlier relative to the CM trajectory apex when shot distance increases
+- Upper extremity shot initiation was found to occur earlier relative to CM trajectory apex with increase in shot distance
+- These results are consistent with previous research indicating shot distance affects timing of upper extremity motion [@Nakano2018; @Podmenik2017; @Miller1993]
+- Initiating the upper arm shooting motion earlier relative to CM apex may be an attempt to take advantage of the CM vertical velocity at ball release [@Wiens2020]
 - Changes in the timing of upper extremity shot initiation in relation to the CM trajectory apex were associated with differences in ball vertical velocity at release
 - Timing of upper body shooting motion relative to whole body motion may affect ball release angle, subsequently affecting performance outcomes
 
